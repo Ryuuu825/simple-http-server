@@ -2,7 +2,6 @@ package admin
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -105,8 +104,6 @@ func (h *Handler) addProxy(w http.ResponseWriter, r *http.Request) {
 
 	if rule.Port > 0 {
 		log.Printf("Added port-based proxy rule: localhost:%d -> %s", rule.Port, rule.TargetURL)
-		// Start the port-based proxy immediately
-		go h.startPortProxy(rule)
 	} else {
 		log.Printf("Added path-based proxy rule: %s -> %s", rule.PathPrefix, rule.TargetURL)
 	}
@@ -217,20 +214,6 @@ func (h *Handler) getSettings(w http.ResponseWriter, r *http.Request) {
 	
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
-}
-
-// startPortProxy starts a port-based proxy server
-func (h *Handler) startPortProxy(rule config.ProxyRule) {
-	addr := fmt.Sprintf(":%d", rule.Port)
-	log.Printf("🔗 Starting Port Proxy: http://localhost:%d -> %s", rule.Port, rule.TargetURL)
-	
-	handler := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		h.proxyManager.ServePortProxy(w, req, rule)
-	})
-	
-	if err := http.ListenAndServe(addr, handler); err != nil {
-		log.Printf("Port-based proxy failed on port %d: %v", rule.Port, err)
-	}
 }
 
 // getLocalIP returns the local IP address of the machine

@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple HTTP Server - Admin Panel</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .button:hover {
+            background: #2980b9;
+        }
+
+        .button-success {
+            background: #27ae60;
+        }
+
+        .button-success:hover {
+            background: #229954;
+        }
+
+        .button-danger {
+            background: #e74c3c;
+        }
+
+        .button-danger:hover {
+            background: #c0392b;
+        }
+
+        .button-secondary {
+            background: #95a5a6;
+        }
+
+        .button-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .proxy-list {
+            list-style: none;
+        }
+
+        .proxy-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .proxy-info {
+            flex: 1;
+        }
+
+        .proxy-info strong {
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .proxy-info span {
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+
+        .proxy-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .proxy-actions button {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 500;
+            z-index: 2000;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.success {
+            background: #27ae60;
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #95a5a6;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .qrcode-container {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            margin-left: 20px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .qrcode-container canvas,
+        .qrcode-container img {
+            border: 2px solid #3498db;
+            border-radius: 4px;
+        }
+
+        .qrcode-label {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .network-access-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simple HTTP Server</h1>
+        <p class="subtitle">Admin Panel - Manage your file server and reverse proxies</p>
+
+        <!-- Server Info -->
+        <div class="section">
+            <div class="section-title">📊 Server Information</div>
+            <div class="info-box">
+                <p><strong>File Server Directory:</strong> <span id="serverDir">Loading...</span></p>
+                <p><strong>Port:</strong> <span id="serverPort">Loading...</span></p>
+                <p><strong>Local Access:</strong> <a id="localAccess" href="/" target="_blank">Loading...</a></p>
+                <div class="network-access-row">
+                    <div style="flex: 1;">
+                        <p style="margin: 0;"><strong>Network Access:</strong> <span id="networkAccess">Loading...</span></p>
+                        <p style="font-size: 13px; color: #7f8c8d; margin-top: 8px;">
+                            Share the network URL or scan the QR code to give others access to the file server and proxies.
+                        </p>
+                    </div>
+                    <div id="qrcodeContainer" style="display: none;">
+                        <div class="qrcode-container">
+                            <div id="qrcode"></div>
+                            <span class="qrcode-label">Scan to Access</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proxy Management -->
+        <div class="section">
+            <div class="section-title">🔄 Reverse Proxy Rules</div>
+            <div class="button-group">
+                <button class="button button-success" onclick="openAddModal()">+ Add Proxy Rule</button>
+                <button class="button button-secondary" onclick="exportSettings()">⬇ Export Settings</button>
+                <button class="button button-secondary" onclick="openImportModal()">⬆ Import Settings</button>
+            </div>
+
+            <ul class="proxy-list" id="proxyList">
+                <!-- Proxies will be loaded here -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Add/Edit Proxy Modal -->
+    <div class="modal" id="proxyModal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle">Add Proxy Rule</div>
+            <form id="proxyForm">
+                <input type="hidden" id="proxyId">
+                
+                <div class="info-box" style="margin-bottom: 20px;">
+                    <p><strong>Proxy Type:</strong> Choose path-based OR port-based</p>
+                    <p style="font-size: 13px;">• <strong>Path-based:</strong> Proxy requests by URL path (e.g., /api → backend)</p>
+                    <p style="font-size: 13px;">• <strong>Port-based:</strong> Proxy all requests on a specific port</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pathPrefix">Path Prefix (for path-based proxy)</label>
+                    <input type="text" id="pathPrefix" placeholder="/api">
+                    <small style="color: #7f8c8d; font-size: 12px;">The URL path that triggers this proxy (e.g., /api, /backend). Leave empty for port-based proxy.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="port">Port (for port-based proxy)</label>
+                    <input type="number" id="port" placeholder="8081" min="1" max="65535">
+                    <small style="color: #7f8c8d; font-size: 12px;">Listen on this port and proxy all requests. Leave empty for path-based proxy.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="targetUrl">Target URL *</label>
+                    <input type="url" id="targetUrl" placeholder="http://localhost:3000" required>
+                    <small style="color: #7f8c8d; font-size: 12px;">The backend server URL to proxy to</small>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="stripPrefix">
+                        Strip path prefix when proxying (path-based only)
+                    </label>
+                    <small style="color: #7f8c8d; font-size: 12px; display: block; margin-left: 28px;">
+                        If checked, /api/users → /users. If unchecked, /api/users → /api/users
+                    </small>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="button button-secondary" onclick="closeModal()">Cancel</button>
+                <button class="button button-success" onclick="saveProxy()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Settings Modal -->
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">Import Settings</div>
+            <div class="form-group">
+                <label for="importFile">Select settings file</label>
+                <input type="file" id="importFile" accept=".json">
+            </div>
+            <div class="modal-footer">
+                <button class="button button-secondary" onclick="closeImportModal()">Cancel</button>
+                <button class="button button-success" onclick="importSettings()">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/admin/api';
+        let editingProxyId = null;
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProxies();
+            loadSettings();
+        });
+
+        // Load proxy rules
+        async function loadProxies() {
+            try {
+                const response = await fetch(`${API_BASE}/proxies`);
+                const proxies = await response.json();
+                
+                const list = document.getElementById('proxyList');
+                
+                if (proxies.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z" />
+                            </svg>
+                            <p>No proxy rules configured yet</p>
+                            <p style="font-size: 14px;">Click "Add Proxy Rule" to create your first reverse proxy</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                list.innerHTML = proxies.map(proxy => `
+                    <li class="proxy-item">
+                        <div class="proxy-info">
+                            <strong>${proxy.port > 0 ? `Port :${proxy.port}` : proxy.path_prefix}</strong>
+                            <span>→ ${proxy.target_url} ${proxy.strip_prefix && !proxy.port ? '(strip prefix)' : ''}</span>
+                        </div>
+                        <div class="proxy-actions">
+                            <button class="button" onclick="editProxy('${proxy.id}')">Edit</button>
+                            <button class="button button-danger" onclick="deleteProxy('${proxy.id}')">Delete</button>
+                        </div>
+                    </li>
+                `).join('');
+            } catch (error) {
+                showNotification('Failed to load proxies', 'error');
+                console.error(error);
+            }
+        }
+
+        // Load server settings
+        async function loadSettings() {
+            try {
+                const response = await fetch(`${API_BASE}/settings`);
+                const settings = await response.json();
+                
+                // Get the actual port from the current URL or settings
+                const currentPort = window.location.port || settings.file_server_port || 9090;
+                
+                document.getElementById('serverDir').textContent = settings.file_server_dir;
+                document.getElementById('serverPort').textContent = currentPort;
+                
+                // Update local access link
+                const localURL = `http://localhost:${currentPort}`;
+                const localAccessEl = document.getElementById('localAccess');
+                localAccessEl.href = localURL;
+                localAccessEl.textContent = localURL;
+                
+                // Display network access URL
+                const localIP = settings.local_ip;
+                const networkAccessEl = document.getElementById('networkAccess');
+                
+                if (localIP && localIP !== 'Unable to detect') {
+                    const networkURL = `http://${localIP}:${currentPort}`;
+                    networkAccessEl.innerHTML = `<a href="${networkURL}" target="_blank">${networkURL}</a>`;
+                    
+                    // Generate QR code
+                    generateQRCode(networkURL);
+                } else {
+                    networkAccessEl.textContent = 'Unable to detect local IP';
+                }
+            } catch (error) {
+                console.error('Failed to load settings:', error);
+            }
+        }
+
+        // Generate QR code for network URL
+        function generateQRCode(url) {
+            const qrcodeContainer = document.getElementById('qrcodeContainer');
+            const qrcodeDiv = document.getElementById('qrcode');
+            
+            // Clear any existing QR code
+            qrcodeDiv.innerHTML = '';
+            
+            // Generate new QR code
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(qrcodeDiv, {
+                    text: url,
+                    width: 128,
+                    height: 128,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+                
+                // Show the QR code container
+                qrcodeContainer.style.display = 'block';
+            }
+        }
+
+        // Open add modal
+        function openAddModal() {
+            editingProxyId = null;
+            document.getElementById('modalTitle').textContent = 'Add Proxy Rule';
+            document.getElementById('proxyForm').reset();
+            document.getElementById('proxyModal').classList.add('active');
+        }
+
+        // Edit proxy
+        async function editProxy(id) {
+            try {
+                const response = await fetch(`${API_BASE}/proxies`);
+                const proxies = await response.json();
+                const proxy = proxies.find(p => p.id === id);
+                
+                if (!proxy) return;
+                
+                editingProxyId = id;
+                document.getElementById('modalTitle').textContent = 'Edit Proxy Rule';
+                document.getElementById('pathPrefix').value = proxy.path_prefix || '';
+                document.getElementById('port').value = proxy.port || '';
+                document.getElementById('targetUrl').value = proxy.target_url;
+                document.getElementById('stripPrefix').checked = proxy.strip_prefix;
+                document.getElementById('proxyModal').classList.add('active');
+            } catch (error) {
+                showNotification('Failed to load proxy', 'error');
+                console.error(error);
+            }
+        }
+
+        // Save proxy
+        async function saveProxy() {
+            const pathPrefix = document.getElementById('pathPrefix').value.trim();
+            const port = parseInt(document.getElementById('port').value) || 0;
+            const targetUrl = document.getElementById('targetUrl').value.trim();
+            const stripPrefix = document.getElementById('stripPrefix').checked;
+            
+            if (!pathPrefix && !port) {
+                showNotification('Please specify either Path Prefix or Port', 'error');
+                return;
+            }
+            
+            if (pathPrefix && port) {
+                showNotification('Please specify only Path Prefix OR Port, not both', 'error');
+                return;
+            }
+            
+            if (!targetUrl) {
+                showNotification('Target URL is required', 'error');
+                return;
+            }
+            
+            const proxy = {
+                path_prefix: pathPrefix,
+                port: port,
+                target_url: targetUrl,
+                strip_prefix: stripPrefix
+            };
+            
+            try {
+                const url = editingProxyId 
+                    ? `${API_BASE}/proxies/${editingProxyId}`
+                    : `${API_BASE}/proxies`;
+                const method = editingProxyId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(proxy)
+                });
+                
+                if (response.ok) {
+                    showNotification(editingProxyId ? 'Proxy updated' : 'Proxy added', 'success');
+                    closeModal();
+                    loadProxies();
+                } else {
+                    showNotification('Failed to save proxy', 'error');
+                }
+            } catch (error) {
+                showNotification('Failed to save proxy', 'error');
+                console.error(error);
+            }
+        }
+
+        // Delete proxy
+        async function deleteProxy(id) {
+            if (!confirm('Are you sure you want to delete this proxy rule?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/proxies/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showNotification('Proxy deleted', 'success');
+                    loadProxies();
+                } else {
+                    showNotification('Failed to delete proxy', 'error');
+                }
+            } catch (error) {
+                showNotification('Failed to delete proxy', 'error');
+                console.error(error);
+            }
+        }
+
+        // Export settings
+        async function exportSettings() {
+            try {
+                const response = await fetch(`${API_BASE}/settings/export`);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'server-settings.json';
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showNotification('Settings exported', 'success');
+            } catch (error) {
+                showNotification('Failed to export settings', 'error');
+                console.error(error);
+            }
+        }
+
+        // Open import modal
+        function openImportModal() {
+            document.getElementById('importModal').classList.add('active');
+        }
+
+        // Close import modal
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('active');
+            document.getElementById('importFile').value = '';
+        }
+
+        // Import settings
+        async function importSettings() {
+            const fileInput = document.getElementById('importFile');
+            if (!fileInput.files[0]) {
+                showNotification('Please select a file', 'error');
+                return;
+            }
+            
+            try {
+                const text = await fileInput.files[0].text();
+                const settings = JSON.parse(text);
+                
+                const response = await fetch(`${API_BASE}/settings/import`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                
+                if (response.ok) {
+                    showNotification('Settings imported', 'success');
+                    closeImportModal();
+                    loadProxies();
+                    loadSettings();
+                } else {
+                    showNotification('Failed to import settings', 'error');
+                }
+            } catch (error) {
+                showNotification('Invalid settings file', 'error');
+                console.error(error);
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('proxyModal').classList.remove('active');
+            document.getElementById('proxyForm').reset();
+            editingProxyId = null;
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Close modal on background click
+        document.getElementById('proxyModal').addEventListener('click', (e) => {
+            if (e.target.id === 'proxyModal') closeModal();
+        });
+        
+        document.getElementById('importModal').addEventListener('click', (e) => {
+            if (e.target.id === 'importModal') closeImportModal();
+        });
+    </script>
+</body>
+</html>

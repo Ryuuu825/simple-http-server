@@ -7,6 +7,24 @@ Download here: [Releases](https://github.com/Ryuuu825/simple-http-server/release
 ![screen_shot.png](./doc/screen_shot.png)
 ![screen_shot.png](./doc/screen_shot2.png)
 
+## Why?
+- why simple-http-server?
+
+    I often share files over the local network to deploy development builds to mobile / tablet / minipc. I found `python -m http.server` have some limitations:
+
+        - No live reload support
+        - Need python installed
+        - once index.html exists, the directory listing is no longer available
+        - I need to manually find the local IP address to share the URL
+
+    So I create this simple HTTP server to solve these problems. And add reverse proxy support to forward requests to other local services.
+
+- why not python / nodejs ?
+
+    I want a standalone executable without any dependencies. So I can just download and run it without installing anything.
+
+    
+
 ## Features
 
 - Static file server with automatic live reload
@@ -17,7 +35,7 @@ Download here: [Releases](https://github.com/Ryuuu825/simple-http-server/release
 - File download support for all file types
 - Recursive subdirectory monitoring
 - Automatic port assignment to avoid conflicts
-- Cross-platform support (Windows, macOS, Linux)
+
 
 ## Installation
 
@@ -27,32 +45,15 @@ Download the appropriate binary for your platform:
 
 - Check the [Releases](https://github.com/Ryuuu825/simple-http-server/releases) page for the latest version.
 
+
 ## Usage
 
-### macOS / Linux
-
-```bash
-# Make the binary executable
-chmod +x simple-http-server-*
-
-# Run the server
-./simple-http-server-darwin-arm64
-```
-
-### Windows
-
-Double-click the executable or run from command prompt:
-
-```cmd
-simple-http-server-windows-amd64.exe
-```
+This is just a standalone executable; Download it and run it.
 
 ### What Happens
 
 1. The server starts on a random available port
 2. The admin panel opens automatically in your default browser
-3. The server displays the local and network URLs
-4. A QR code is generated for easy mobile access
 
 ## Configuration
 
@@ -142,12 +143,6 @@ Import previously saved configurations:
 # From the admin panel, click "Import Settings"
 # Select your JSON configuration file
 ```
-
-## Command Line Options
-
-Currently, the server uses automatic configuration:
-- Port: Automatically assigned by the OS
-- Directory: Current working directory (or executable directory on macOS)
 
 ## Troubleshooting
 

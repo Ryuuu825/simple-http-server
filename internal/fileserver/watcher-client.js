@@ -2,7 +2,7 @@
 (function() {
     'use strict';
     
-    const eventSource = new EventSource('/__sse');
+    const eventSource = new EventSource('/events');
     
     eventSource.onopen = function() {
         console.log('Connected to file watcher');

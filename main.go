@@ -12,9 +12,13 @@ import (
 	"strings"
 
 	"simple.http.server/internal/admin"
+	"simple.http.server/internal/archive"
+	"simple.http.server/internal/clipboard"
 	"simple.http.server/internal/config"
 	"simple.http.server/internal/fileserver"
 	"simple.http.server/internal/proxy"
+	"simple.http.server/internal/search"
+	"simple.http.server/internal/upload"
 )
 
 func main() {
@@ -47,6 +51,10 @@ func main() {
 	fileServer := fileserver.NewFileServer(cfg)
 	proxyManager := proxy.NewProxyManager(cfg)
 	adminHandler := admin.NewHandler(cfg, proxyManager)
+	uploadHandler := upload.NewHandler(cfg)
+	searchHandler := search.NewHandler(cfg)
+	clipboardHandler := clipboard.NewHandler()
+	archiveHandler := archive.NewHandler(cfg)
 
 	// Setup routes
 	mux := http.NewServeMux()
@@ -54,6 +62,12 @@ func main() {
 	// Admin panel routes
 	mux.Handle("/admin/api/", adminHandler)
 	mux.Handle("/admin/", http.StripPrefix("/admin", admin.GetStaticHandler()))
+
+	// API routes for new features
+	mux.Handle("/api/upload", uploadHandler)
+	mux.Handle("/api/search", searchHandler)
+	mux.Handle("/api/clipboard", clipboardHandler)
+	mux.Handle("/api/archive", archiveHandler)
 
 	// SSE endpoint for file changes
 	mux.HandleFunc("/events", fileServer.HandleSSE)

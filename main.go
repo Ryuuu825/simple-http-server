@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -21,6 +22,21 @@ func main() {
 	cwd, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("Failed to get current directory: %v", err)
+	}
+	
+	// On macOS, when double-clicking the executable, the working directory
+	// is set to the user's home directory. Change it to the executable's directory.
+	if runtime.GOOS == "darwin" {
+		exePath, err := os.Executable()
+		if err == nil {
+			exeDir := filepath.Dir(exePath)
+			// Only change directory if we're in the home directory
+			homeDir, _ := os.UserHomeDir()
+			if cwd == homeDir {
+				os.Chdir(exeDir)
+				cwd = exeDir
+			}
+		}
 	}
 
 	// Initialize configuration
@@ -57,9 +73,6 @@ func main() {
 		fileServer.ServeHTTP(w, r)
 	})
 
-	// Start port-based proxies
-	go startPortBasedProxies(cfg, proxyManager)
-
 	// Find an available port (use 0 to let OS assign one)
 	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
@@ -71,6 +84,9 @@ func main() {
 	
 	// Update config with the actual port
 	cfg.SetFileServerPort(port)
+
+	// Start port-based proxies AFTER config is updated with the port
+	go startPortBasedProxies(cfg, proxyManager)
 
 	// Print startup information
 	log.Println("╔════════════════════════════════════════════════════════════╗")

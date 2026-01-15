@@ -2,6 +2,8 @@
 
 A lightweight file server with reverse proxy support and live reload capabilities.
 
+Download here: [Releases](https://github.com/Ryuuu825/simple-http-server/releases)
+
 ![screen_shot.png](./doc/screen_shot.png)
 ![screen_shot.png](./doc/screen_shot2.png)
 
